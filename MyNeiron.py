@@ -1,22 +1,31 @@
 import numpy as np
 import pandas as pd
-from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
+from tensorflow.keras.datasets import fashion_mnist
 
-# Загружаем данные
-iris = datasets.load_iris()
-X = iris.data
-y = iris.target
+# Загружаем данные FashionMNIST
+(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+
+# Преобразуем изображения в одномерные векторы
+x_train = x_train.reshape(-1, 28*28) / 255.0  # Нормализуем значения пикселей
+x_test = x_test.reshape(-1, 28*28) / 255.0
+
+# Преобразуем метки в one-hot кодировку
+def one_hot_encode(y, num_classes):
+    return np.eye(num_classes)[y]
+
+y_train_one_hot = one_hot_encode(y_train, 10)
+y_test_one_hot = one_hot_encode(y_test, 10)
 
 # Разделяем данные на обучающую и тестовую выборки
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+X_train, X_test, y_train, y_test = x_train, x_test, y_train, y_test
 
 # Параметры сети
 input_size = X_train.shape[1]
-hidden_size = 5
-output_size = len(np.unique(y))
+hidden_size = 128  # Можно увеличить размер скрытого слоя для лучшего качества
+output_size = 10  # 10 классов для FashionMNIST
 learning_rate = 0.01
 epochs = 1000
 
@@ -41,14 +50,6 @@ def softmax(x):
 def cross_entropy_loss(y_true, y_pred):
     m = y_true.shape[0]
     return -np.sum(y_true * np.log(y_pred + 1e-8)) / m
-
-# Функция для преобразования меток в one-hot кодировку
-def one_hot_encode(y, num_classes):
-    return np.eye(num_classes)[y]
-
-# Преобразуем метки в one-hot кодировку
-y_train_one_hot = one_hot_encode(y_train, output_size)
-y_test_one_hot = one_hot_encode(y_test, output_size)
 
 # Обучение
 train_losses = []
